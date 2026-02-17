@@ -1,0 +1,118 @@
+<div class="chronodex-container">
+  <h1>Chronodex Time Tracker</h1>
+  <p>Use the button below to add a new entry. Drag handles to resize. Click an arc to edit.</p>
+
+  <div class="controls-top">
+    <button (click)="addNow()">+ Add Activity Now</button>
+  </div>
+
+  <svg [attr.viewBox]="viewBox">
+    <!-- Clock Face -->
+    <circle [attr.cx]="center" [attr.cy]="center" [attr.r]="radius" class="clock-face" />
+
+    <!-- Hour & 30-min Markers -->
+    <g *ngFor="let tick of halfHours">
+      <line [attr.x1]="getHourPoint(tick).x" [attr.y1]="getHourPoint(tick).y"
+        [attr.x2]="getHourPoint(tick, tick % 6 === 0 ? 15 : (tick % 1 === 0 ? 10 : 6)).x"
+        [attr.y2]="getHourPoint(tick, tick % 6 === 0 ? 15 : (tick % 1 === 0 ? 10 : 6)).y" [class.hour-line]="true"
+        [class.major]="tick % 6 === 0" [class.minor]="tick % 1 !== 0" />
+      <text *ngIf="tick % 1 === 0" [attr.x]="getHourPoint(tick, 25).x" [attr.y]="getHourPoint(tick, 25).y"
+        class="hour-label">
+        {{ tick === 0 ? '00' : tick }}
+      </text>
+    </g>
+
+    <!-- Activity Arcs -->
+    <g *ngFor="let activity of leveledActivities">
+      <path [attr.d]="getArcPath(activity, activity.level)" [style.fill]="activity.color"
+        [style.stroke]="activity.color" [style.fill-opacity]="0.6" class="activity-arc"
+        (click)="openEditModal(activity, $event)" />
+      <!-- Start Handle -->
+      <circle [attr.cx]="getStartHandleCoords(activity, activity.level).x"
+        [attr.cy]="getStartHandleCoords(activity, activity.level).y" r="6" class="handle start-handle"
+        (mousedown)="handleMouseDown($event, activity.id, 'start')" />
+      <!-- End Handle -->
+      <circle [attr.cx]="getHandleCoords(activity, activity.level).x"
+        [attr.cy]="getHandleCoords(activity, activity.level).y" r="8" class="handle"
+        (mousedown)="handleMouseDown($event, activity.id, 'end')" />
+    </g>
+
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orientation="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
+      </marker>
+    </defs>
+
+    <!-- Callout Particulars (Arrows + Text) -->
+    <g *ngFor="let activity of leveledActivities">
+      <!-- Arrow from arc midpoint to label -->
+      <line [attr.x1]="getPointOnCircle(getMidPointAngle(activity), 0, activity.level).x"
+        [attr.y1]="getPointOnCircle(getMidPointAngle(activity), 0, activity.level).y"
+        [attr.x2]="getPointOnCircle(getMidPointAngle(activity), 30, activity.level).x"
+        [attr.y2]="getPointOnCircle(getMidPointAngle(activity), 30, activity.level).y" class="callout-line" />
+      <!-- Text Label -->
+      <text [attr.x]="getPointOnCircle(getMidPointAngle(activity), 35, activity.level).x"
+        [attr.y]="getPointOnCircle(getMidPointAngle(activity), 35, activity.level).y" class="callout-label"
+        [attr.text-anchor]="getLabelAlignment(getMidPointAngle(activity))">
+        {{ activity.title }} ({{ activity.durationMinutes >= 60 ? (activity.durationMinutes / 60 | number:'1.0-1') + 'h'
+        : activity.durationMinutes + 'm' }})
+      </text>
+    </g>
+
+    <!-- Current Time Indicator -->
+    <line [attr.x1]="center" [attr.y1]="center"
+      [attr.x2]="getHourPoint(currentTime.getHours() + currentTime.getMinutes()/60).x"
+      [attr.y2]="getHourPoint(currentTime.getHours() + currentTime.getMinutes()/60).y" class="current-time-line" />
+  </svg>
+
+  <!-- Activity Legend -->
+  <div class="legend-container">
+    <div class="legend-header">
+      <div class="legend-title">Logged Activities</div>
+      <button class="btn-clear" (click)="clearAll()" *ngIf="activities.length > 0">Clear All</button>
+    </div>
+    <div *ngIf="activities.length === 0" class="empty-state">
+      No activities logged yet.
+    </div>
+    <ul class="legend-list">
+      <li *ngFor="let activity of activities" class="legend-item">
+        <div class="color-dot" [style.backgroundColor]="activity.color"></div>
+        <div class="activity-info">
+          <span class="activity-title">{{ activity.title }}</span>
+          <span class="activity-time">
+            {{ activity.startTime | date:'HH:mm' }} - {{ activity.endTime | date:'HH:mm' }}
+            ({{ activity.durationMinutes }} mins)
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="overlay" *ngIf="isModalOpen" (click)="closeModal()"></div>
+  <div class="modal" *ngIf="isModalOpen">
+    <h3>Edit Activity</h3>
+
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" [(ngModel)]="editingActivity!.title" placeholder="What are you doing?">
+    </div>
+
+    <div class="form-group">
+      <label>Color</label>
+      <input type="color" [(ngModel)]="editingActivity!.color">
+    </div>
+
+    <div class="form-group">
+      <label>Start: {{ editingActivity!.startTime | date:'HH:mm' }}</label>
+      <label>End: {{ editingActivity!.endTime | date:'HH:mm' }}</label>
+      <label>Duration: {{ editingActivity!.durationMinutes }} mins</label>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-danger" (click)="deleteActivity()">Delete</button>
+      <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+      <button (click)="saveActivity()">Save</button>
+    </div>
+  </div>
+</div>
