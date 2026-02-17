@@ -25,9 +25,9 @@ export class ChronodexComponent implements OnInit, OnDestroy {
     private subs = new Subscription();
 
     // SVG Config
-    readonly size = 500;
-    readonly center = 250;
-    readonly radius = 150;
+    readonly size = 600;
+    readonly center = 300;
+    readonly radius = 200;
     readonly viewBox = `0 0 ${this.size} ${this.size}`;
 
     // Interactions

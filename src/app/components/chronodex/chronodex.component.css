@@ -1,47 +1,68 @@
 :host {
   display: block;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: #333;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
 }
 
 .chronodex-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem;
-  max-width: 800px;
+  padding: 1rem;
+  width: 100%;
+  max-width: 500px;
   margin: 0 auto;
 }
 
+h1 {
+  font-size: 1.5rem;
+  margin: 1rem 0 0.5rem;
+  background: linear-gradient(135deg, #1dd1a1, #10ac84);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
 svg {
-  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+  width: 100%;
+  height: auto;
+  max-width: 500px;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
   user-select: none;
   touch-action: none;
 }
 
 .clock-face {
-  fill: #fff;
-  stroke: #eee;
+  fill: var(--surface-color);
+  stroke: var(--border-color);
   stroke-width: 2;
 }
 
 .hour-line {
-  stroke: #ddd;
+  stroke: var(--border-color);
   stroke-width: 1;
 }
 
 .hour-line.major {
-  stroke: #bbb;
+  stroke: #484f58;
   stroke-width: 2;
 }
 
 .hour-line.minor {
-  stroke: #bbb;
-  stroke-width: 0.6;
+  stroke: #21262d;
+  stroke-width: 1;
 }
 
 .hour-label {
-  fill: #888;
+  fill: var(--text-secondary);
   font-size: 10px;
   font-weight: 500;
   text-anchor: middle;
@@ -50,178 +71,105 @@ svg {
 
 .activity-arc {
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: filter 0.2s;
   stroke-width: 1;
+  stroke: rgba(255, 255, 255, 0.1);
 }
 
 .activity-arc:hover {
-  fill-opacity: 0.9 !important;
+  filter: brightness(1.2);
+  fill-opacity: 0.8 !important;
 }
 
 .handle {
   cursor: pointer;
-  fill: white;
-  stroke: #333;
-  stroke-width: 2;
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .start-handle {
-  stroke: #666;
-  fill: #eee;
+  fill: #8b949e;
 }
 
 .current-time-line {
-  stroke: #ff4757;
+  stroke: #ff7675;
   stroke-width: 2;
   stroke-linecap: round;
-}
-
-.controls {
-  margin-top: 2rem;
-  display: flex;
-  gap: 1rem;
-}
-
-button {
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: none;
-  background: #3742fa;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-button:active {
-  transform: scale(0.95);
-}
-
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  padding: 2rem;
-  border-radius: 16px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  width: 90%;
-  max-width: 400px;
-}
-
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  z-index: 999;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.5rem;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-}
-
-.btn-secondary {
-  background: #f1f2f6;
-  color: #2f3542;
-}
-
-.btn-danger {
-  background: #ff4757;
-}
-
-.controls-top {
-  margin-bottom: 2rem;
-}
-
-.controls-top button {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  background: #1dd1a1;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.controls-top button:hover {
-  background: #10ac84;
+  filter: drop-shadow(0 0 5px rgba(255, 118, 117, 0.5));
 }
 
 .callout-line {
-  stroke: #666;
+  stroke: var(--text-secondary);
   stroke-width: 1;
   fill: none;
-  marker-end: url(#arrowhead);
+  opacity: 0.6;
 }
 
 .callout-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  fill: #333;
+  fill: var(--text-primary);
   pointer-events: none;
 }
 
-/* Legend Styles */
-.legend-container {
-  margin-top: 2rem;
+/* Controls */
+.controls-top {
   width: 100%;
-  max-width: 400px;
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
 }
 
-.legend-title {
-  font-size: 1.1rem;
+button {
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent-color);
+  color: #000;
   font-weight: 700;
-  color: #2d3436;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.2s;
+  width: 100%;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* Legend */
+.legend-container {
+  margin-top: 2.5rem;
+  width: 100%;
+  background: var(--surface-color);
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
 }
 
 .legend-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  border-bottom: 2px solid #f1f2f6;
-  padding-bottom: 0.5rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+.legend-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .btn-clear {
-  background: #dfe6e9;
-  color: #636e72;
+  background: rgba(248, 81, 73, 0.1);
+  color: var(--danger-color);
   font-size: 0.8rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-}
-
-.btn-clear:hover {
-  background: #ff7675;
-  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  width: auto;
 }
 
 .legend-list {
@@ -230,20 +178,19 @@ button:active {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-size: 0.95rem;
 }
 
 .color-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
   flex-shrink: 0;
 }
 
@@ -254,17 +201,89 @@ button:active {
 
 .activity-title {
   font-weight: 600;
-  color: #2f3542;
+  font-size: 0.95rem;
 }
 
 .activity-time {
   font-size: 0.8rem;
-  color: #747d8c;
+  color: var(--text-secondary);
 }
 
 .empty-state {
   text-align: center;
-  color: #a4b0be;
+  color: var(--text-secondary);
   font-style: italic;
-  font-size: 0.9rem;
+  padding: 1rem 0;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface-color);
+  padding: 2rem;
+  border-radius: 24px 24px 0 0;
+  z-index: 1001;
+  border-top: 1px solid var(--border-color);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.form-group input {
+  width: 100%;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.8rem;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn-secondary {
+  background: #30363d;
+  color: var(--text-primary);
+}
+
+.btn-danger {
+  background: var(--danger-color);
+  color: white;
 }
