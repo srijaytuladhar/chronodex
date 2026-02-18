@@ -26,15 +26,18 @@
     <g *ngFor="let activity of leveledActivities">
       <path [attr.d]="getArcPath(activity, activity.level)" [style.fill]="activity.color"
         [style.stroke]="activity.color" [style.fill-opacity]="0.6" class="activity-arc"
-        (click)="openEditModal(activity, $event)" />
+        (click)="openEditModal(activity, $event)" (mousedown)="handleMouseDown($event, activity.id, 'move')"
+        (touchstart)="handleMouseDown($event, activity.id, 'move')" />
       <!-- Start Handle -->
       <circle [attr.cx]="getStartHandleCoords(activity, activity.level).x"
         [attr.cy]="getStartHandleCoords(activity, activity.level).y" r="6" class="handle start-handle"
-        (mousedown)="handleMouseDown($event, activity.id, 'start')" />
+        (mousedown)="handleMouseDown($event, activity.id, 'start')"
+        (touchstart)="handleMouseDown($event, activity.id, 'start')" />
       <!-- End Handle -->
       <circle [attr.cx]="getHandleCoords(activity, activity.level).x"
         [attr.cy]="getHandleCoords(activity, activity.level).y" r="8" class="handle"
-        (mousedown)="handleMouseDown($event, activity.id, 'end')" />
+        (mousedown)="handleMouseDown($event, activity.id, 'end')"
+        (touchstart)="handleMouseDown($event, activity.id, 'end')" />
     </g>
 
     <defs>
@@ -75,7 +78,8 @@
       No activities logged yet.
     </div>
     <ul class="legend-list">
-      <li *ngFor="let activity of activities" class="legend-item">
+      <li *ngFor="let activity of leveledActivities" class="legend-item" (click)="openEditModal(activity, $event)"
+        style="cursor: pointer;">
         <div class="color-dot" [style.backgroundColor]="activity.color"></div>
         <div class="activity-info">
           <span class="activity-title">{{ activity.title }}</span>
@@ -99,8 +103,12 @@
     </div>
 
     <div class="form-group">
-      <label>Color</label>
-      <input type="color" [(ngModel)]="editingActivity!.color">
+      <label>Select Color</label>
+      <div class="color-grid">
+        <div *ngFor="let color of predefinedColors" class="color-chip" [style.backgroundColor]="color"
+          [class.active]="editingActivity?.color === color" (click)="editingActivity!.color = color">
+        </div>
+      </div>
     </div>
 
     <div class="form-group">

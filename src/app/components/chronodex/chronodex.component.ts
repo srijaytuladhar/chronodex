@@ -33,11 +33,26 @@ export class ChronodexComponent implements OnInit, OnDestroy {
     // Interactions
     isDragging = false;
     draggedActivityId: string | null = null;
-    dragMode: 'start' | 'end' = 'end';
+    dragMode: 'start' | 'end' | 'move' = 'end';
+    dragStartAngle: number = 0;
+    initialStartTime?: Date;
+    initialEndTime?: Date;
+    initialDuration?: number;
+    hasMoved = false;
 
     // Modal State
     isModalOpen = false;
     editingActivity: Activity | null = null;
+    readonly predefinedColors = [
+        '#ff5e57', // Red
+        '#1dd1a1', // Green
+        '#54a0ff', // Blue
+        '#00d2d3', // Teal
+        '#fbc531', // Gold
+        '#dcdde1', // Silver
+        '#eabfb9', // Rosegold
+        '#ffffff'  // White
+    ];
 
     constructor(private chronodexService: ChronodexService) { }
 
@@ -141,46 +156,86 @@ export class ChronodexComponent implements OnInit, OnDestroy {
         this.chronodexService.addActivity(newActivity);
     }
 
-    handleMouseDown(event: MouseEvent, activityId: string, mode: 'start' | 'end') {
+    handleMouseDown(event: MouseEvent | TouchEvent, activityId: string, mode: 'start' | 'end' | 'move') {
         event.stopPropagation();
         this.isDragging = true;
         this.draggedActivityId = activityId;
         this.dragMode = mode;
+        this.dragStartAngle = this.getAngleFromEvent(event);
+
+        const activity = this.activities.find(a => a.id === activityId);
+        if (activity) {
+            this.initialStartTime = new Date(activity.startTime);
+            this.initialEndTime = new Date(activity.endTime);
+            this.initialDuration = activity.durationMinutes;
+            this.hasMoved = false;
+        }
     }
 
     @HostListener('window:mousemove', ['$event'])
-    onMouseMove(event: MouseEvent) {
+    @HostListener('window:touchmove', ['$event'])
+    onMove(event: MouseEvent | TouchEvent) {
         if (!this.isDragging || !this.draggedActivityId) return;
 
+        // Prevent default to disable scrolling while dragging on mobile
+        if (event instanceof TouchEvent) {
+            event.preventDefault();
+        }
+
         const angle = this.getAngleFromEvent(event);
+
+        // Threshold to avoid shaky clicks being counted as drags
+        if (!this.hasMoved && Math.abs(angle - this.dragStartAngle) > 2) {
+            this.hasMoved = true;
+        }
+
+        if (!this.hasMoved && this.dragMode === 'move') return;
+
         const snappedAngle = snapAngleTo15Min(angle);
         const activity = this.activities.find(a => a.id === this.draggedActivityId);
 
         if (activity) {
             let updatedActivity = { ...activity };
 
-            if (this.dragMode === 'end') {
+            if (this.dragMode === 'move' && this.initialStartTime && this.initialEndTime) {
+                const angleDiff = snappedAngle - snapAngleTo15Min(this.dragStartAngle);
+                const timeDiffMs = (angleDiff / 15) * 60 * 60 * 1000;
+
+                updatedActivity.startTime = new Date(this.initialStartTime.getTime() + timeDiffMs);
+                updatedActivity.endTime = new Date(this.initialEndTime.getTime() + timeDiffMs);
+                updatedActivity.durationMinutes = this.initialDuration || activity.durationMinutes;
+            } else if (this.dragMode === 'end') {
                 updatedActivity.endTime = angleToTime(snappedAngle, activity.startTime);
-            } else { // this.dragMode === 'start'
+                let diff = (updatedActivity.endTime.getTime() - updatedActivity.startTime.getTime()) / (1000 * 60);
+                if (diff < 0) diff += 24 * 60;
+                updatedActivity.durationMinutes = diff;
+            } else if (this.dragMode === 'start') {
                 updatedActivity.startTime = angleToTime(snappedAngle, activity.endTime);
+                let diff = (updatedActivity.endTime.getTime() - updatedActivity.startTime.getTime()) / (1000 * 60);
+                if (diff < 0) diff += 24 * 60;
+                updatedActivity.durationMinutes = diff;
             }
 
-            // Calculate duration
-            let diff = (updatedActivity.endTime.getTime() - updatedActivity.startTime.getTime()) / (1000 * 60);
-            if (diff < 0) diff += 24 * 60; // Wrap around
+            const hasChanged =
+                updatedActivity.startTime.getTime() !== activity.startTime.getTime() ||
+                updatedActivity.endTime.getTime() !== activity.endTime.getTime();
 
-            updatedActivity.durationMinutes = diff;
-            this.chronodexService.updateActivity(updatedActivity);
+            if (hasChanged) {
+                this.chronodexService.updateActivity(updatedActivity);
+            }
         }
     }
 
     @HostListener('window:mouseup')
-    onMouseUp() {
+    @HostListener('window:touchend')
+    @HostListener('window:touchcancel')
+    onEnd() {
         this.isDragging = false;
         this.draggedActivityId = null;
     }
 
     openEditModal(activity: Activity, event: MouseEvent) {
+        if (this.hasMoved) return;
         event.stopPropagation();
         this.editingActivity = { ...activity };
         this.isModalOpen = true;
@@ -211,7 +266,7 @@ export class ChronodexComponent implements OnInit, OnDestroy {
         }
     }
 
-    private getAngleFromEvent(event: MouseEvent): number {
+    private getAngleFromEvent(event: MouseEvent | TouchEvent): number {
         const svg = document.querySelector('svg');
         if (!svg) return 0;
 
@@ -219,8 +274,17 @@ export class ChronodexComponent implements OnInit, OnDestroy {
         if (!CTM) return 0;
 
         const pt = svg.createSVGPoint();
-        pt.x = event.clientX;
-        pt.y = event.clientY;
+
+        if (event instanceof MouseEvent) {
+            pt.x = event.clientX;
+            pt.y = event.clientY;
+        } else if (event.touches && event.touches.length > 0) {
+            pt.x = event.touches[0].clientX;
+            pt.y = event.touches[0].clientY;
+        } else {
+            return 0;
+        }
+
         const svgPt = pt.matrixTransform(CTM.inverse());
 
         const dx = svgPt.x - this.center;
@@ -235,8 +299,7 @@ export class ChronodexComponent implements OnInit, OnDestroy {
     }
 
     private getRandomColor(): string {
-        const colors = ['#ff9f43', '#00d2d3', '#54a0ff', '#5f27cd', '#ff6b6b', '#48dbfb', '#1dd1a1'];
-        return colors[Math.floor(Math.random() * colors.length)];
+        return this.predefinedColors[Math.floor(Math.random() * this.predefinedColors.length)];
     }
 
     getHandleCoords(activity: Activity, level: number = 0): Point {

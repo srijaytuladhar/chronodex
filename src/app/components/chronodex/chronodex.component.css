@@ -70,7 +70,7 @@ svg {
 }
 
 .activity-arc {
-  cursor: pointer;
+  cursor: move;
   transition: filter 0.2s;
   stroke-width: 1;
   stroke: rgba(255, 255, 255, 0.1);
@@ -270,6 +270,32 @@ button:active {
   padding: 0.8rem;
   border-radius: 10px;
   font-size: 1rem;
+}
+
+.color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.color-chip {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.color-chip:active {
+  transform: scale(0.9);
+}
+
+.color-chip.active {
+  border-color: var(--text-primary);
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 .modal-actions {
